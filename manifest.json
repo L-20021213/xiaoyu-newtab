@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json.schemastore.org/chrome-manifest",
+  "{{chrome}}.manifest_version": 3,
+  "{{firefox}}.manifest_version": 2,
+  "name": "小鱼起始页",
+  "version": "1.0.0",
+  "description": "一个精美且可自定义的浏览器起始页",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "{{chrome}}.permissions": ["storage", "bookmarks"],
+  "{{chrome}}.host_permissions": ["https://www.bing.com/*", "https://cn.bing.com/*"],
+  "{{firefox}}.permissions": ["storage", "bookmarks", "https://www.bing.com/*", "https://cn.bing.com/*"],
+  "{{chrome}}.background": {
+    "service_worker": "src/background/index.js",
+    "type": "module"
+  },
+  "{{firefox}}.background": {
+    "scripts": ["src/background/index.js"],
+    "type": "module"
+  },
+  "chrome_url_overrides": {
+    "newtab": "src/newtab/index.html"
+  },
+  "{{chrome}}.chrome_settings_overrides": {
+    "homepage": "src/newtab/index.html"
+  },
+  "{{chrome}}.web_accessible_resources": [
+    {
+      "resources": ["wallpaper/*"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "{{firefox}}.web_accessible_resources": ["wallpaper/*"],
+  "{{firefox}}.browser_specific_settings": {
+    "gecko": {
+      "id": "newtab@anheyu.com",
+      "strict_min_version": "109.0"
+    }
+  }
+}
