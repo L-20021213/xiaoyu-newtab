@@ -47,27 +47,15 @@ export const DEFAULT_WALLPAPERS = [
 
 // 动态壁纸列表 (本地视频)
 export const DYNAMIC_WALLPAPERS = [
-  "/wallpaper/dynamic/Anime-Food-Compilation.mp4",
-  "/wallpaper/dynamic/anime-girl-lonely-night-city-desktop-wallpaperwaifu.com.mp4",
-  "/wallpaper/dynamic/Genshin-genshin-XiaoAether.mp4",
   "/wallpaper/dynamic/kasumizawa-miyu-blue-archive.mp4",
-  "/wallpaper/dynamic/LiveWallpaperPC.com-Kaedehara-Kazuha.mp4",
-  "/wallpaper/dynamic/LiveWallpaperPC.com-Kamisato-Ayaka.mp4",
   "/wallpaper/dynamic/LiveWallpaperPC.com-Warma.mp4",
-  "/wallpaper/dynamic/LiveWallpaperPC.com-Yukikaze.mp4",
   "/wallpaper/dynamic/xue-hu-sang-virtual-youtuber-desktop-wallpaperwaifu.com.mp4",
 ];
 
 // 动态壁纸缩略图 (同时作为后备静态图)
 export const DYNAMIC_WALLPAPER_THUMBNAILS = [
-  "/wallpaper/dynamic/Anime-Food-Compilation_thumb.jpg",
-  "/wallpaper/dynamic/anime-girl-lonely-night-city-desktop-wallpaperwaifu.com_thumb.jpg",
-  "/wallpaper/dynamic/Genshin-genshin-XiaoAether_thumb.jpg",
   "/wallpaper/dynamic/kasumizawa-miyu-blue-archive_thumb.jpg",
-  "/wallpaper/dynamic/LiveWallpaperPC.com-Kaedehara-Kazuha_thumb.jpg",
-  "/wallpaper/dynamic/LiveWallpaperPC.com-Kamisato-Ayaka_thumb.jpg",
   "/wallpaper/dynamic/LiveWallpaperPC.com-Warma_thumb.jpg",
-  "/wallpaper/dynamic/LiveWallpaperPC.com-Yukikaze_thumb.jpg",
   "/wallpaper/dynamic/xue-hu-sang-virtual-youtuber-desktop-wallpaperwaifu.com_thumb.jpg",
 ];
 

@@ -268,7 +268,7 @@ function downloadBingWallpaper() {
       <!-- 动态壁纸区域 -->
       <section class="dynamic-section">
         <h3 class="section-label">{{ t("wallpaperSettings.dynamic") }}</h3>
-        <div class="wallpaper-grid wallpaper-grid-4">
+        <div class="wallpaper-grid wallpaper-grid-3">
           <button
             v-for="(_, index) in DYNAMIC_WALLPAPERS"
             :key="index"
@@ -639,15 +639,15 @@ function downloadBingWallpaper() {
   gap: 10px;
 }
 
-.wallpaper-grid-4 {
-  grid-template-columns: repeat(4, 1fr);
+.wallpaper-grid-3 {
+  grid-template-columns: repeat(3, 1fr);
 }
 
 @media (max-width: 500px) {
   .wallpaper-grid {
     grid-template-columns: repeat(4, 1fr);
   }
-  .wallpaper-grid-4 {
+  .wallpaper-grid-3 {
     grid-template-columns: repeat(3, 1fr);
   }
 }
@@ -655,9 +655,6 @@ function downloadBingWallpaper() {
 @media (max-width: 400px) {
   .wallpaper-grid {
     grid-template-columns: repeat(3, 1fr);
-  }
-  .wallpaper-grid-4 {
-    grid-template-columns: repeat(2, 1fr);
   }
 }
 
