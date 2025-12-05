@@ -20,6 +20,10 @@ export default defineConfig(({ mode }) => {
       webExtension({
         browser,
         manifest: "manifest.json",
+        webExtConfig: {
+          // Disable automatic homepage override to avoid "Invalid value for overriding homepage url" error
+          startUrl: [],
+        },
       }),
       viteStaticCopy({
         targets: [

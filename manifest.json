@@ -25,9 +25,6 @@
   "chrome_url_overrides": {
     "newtab": "src/newtab/index.html"
   },
-  "{{chrome}}.chrome_settings_overrides": {
-    "homepage": "src/newtab/index.html"
-  },
   "{{chrome}}.web_accessible_resources": [
     {
       "resources": ["wallpaper/*"],
