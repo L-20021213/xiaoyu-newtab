@@ -90,7 +90,7 @@ const DEFAULT_SETTINGS: Settings = {
 };
 
 const DEFAULT_WALLPAPER: WallpaperSettings = {
-  type: "default",
+  type: "dynamic",
   url: null,
   localData: null,
   localImages: [],
