@@ -226,6 +226,7 @@ export default {
     saved: "Saved",
     saving: "Saving...",
     fullscreen: "Fullscreen",
+    exitFullscreen: "Exit Fullscreen",
     pin: "Pin to Home",
     unpin: "Unpin",
     preview: "Markdown Preview",

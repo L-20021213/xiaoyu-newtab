@@ -21,6 +21,8 @@ const editorContent = ref("");
 const showPreview = ref(false);
 // 分屏模式
 const showSplitView = ref(true);
+// 全屏模式
+const isFullscreen = ref(false);
 // 保存状态
 const saveStatus = ref<"saved" | "saving" | "idle">("idle");
 // 保存防抖定时器
@@ -130,6 +132,11 @@ function handleToggleSplitView() {
   showSplitView.value = !showSplitView.value;
 }
 
+// 切换全屏模式
+function handleToggleFullscreen() {
+  isFullscreen.value = !isFullscreen.value;
+}
+
 // 点击背景关闭弹窗
 function handleBackdropClick(e: MouseEvent) {
   if (e.target === e.currentTarget) {
@@ -140,12 +147,16 @@ function handleBackdropClick(e: MouseEvent) {
 
 <template>
   <div
-    class="fixed inset-0 z-50 flex items-center justify-center dialog-backdrop dialog-perspective"
+    class="fixed inset-0 z-50 flex dialog-backdrop dialog-perspective"
+    :class="{ 'items-center justify-center': !isFullscreen }"
     @click.stop="handleBackdropClick"
   >
     <div
       class="relative w-full h-full shadow-2xl dialog-bg sm:rounded-2xl overflow-hidden flex flex-col dialog-card sm:w-[800px] sm:h-[550px]"
-      :class="{ 'no-tilt': settingsStore.settings.reduceMotion }"
+      :class="{
+        'no-tilt': settingsStore.settings.reduceMotion,
+        'dialog-fullscreen': isFullscreen,
+      }"
       @click.stop
     >
       <!-- Header -->
@@ -153,8 +164,12 @@ function handleBackdropClick(e: MouseEvent) {
         <h2 class="text-base font-semibold text-primary">{{ t("notes.title") }}</h2>
         <div class="flex items-center gap-2">
           <!-- 全屏按钮 -->
-          <button class="header-btn" :title="t('notes.fullscreen')">
-            <Icon icon="ri:fullscreen-line" class="w-4 h-4" />
+          <button
+            class="header-btn"
+            :title="isFullscreen ? t('notes.exitFullscreen') : t('notes.fullscreen')"
+            @click="handleToggleFullscreen"
+          >
+            <Icon :icon="isFullscreen ? 'ri:fullscreen-exit-line' : 'ri:fullscreen-line'" class="w-4 h-4" />
           </button>
           <!-- 关闭按钮 -->
           <button class="header-btn" :title="t('common.close')" @click="emit('close')">
@@ -338,6 +353,33 @@ function handleBackdropClick(e: MouseEvent) {
 
 .dialog-card.no-tilt {
   transform: none !important;
+}
+
+/* 全屏模式样式 */
+.dialog-card.dialog-fullscreen {
+  width: calc(100% - 32px) !important;
+  height: calc(100% - 32px) !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 16px;
+  align-self: flex-start;
+  margin-top: 16px;
+  margin-left: 16px;
+  margin-right: 16px;
+  margin-bottom: 16px;
+}
+
+/* 移动端全屏模式 */
+@media (max-width: 639px) {
+  .dialog-card.dialog-fullscreen {
+    width: calc(100% - 24px) !important;
+    height: calc(100% - 24px) !important;
+    margin: 12px;
+    margin-top: 12px;
+    margin-left: 12px;
+    margin-right: 12px;
+    margin-bottom: 12px;
+  }
 }
 
 .dialog-bg {

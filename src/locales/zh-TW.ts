@@ -226,6 +226,7 @@ export default {
     saved: "已儲存",
     saving: "儲存中...",
     fullscreen: "全螢幕",
+    exitFullscreen: "退出全螢幕",
     pin: "固定到主螢幕",
     unpin: "取消固定",
     preview: "Markdown 預覽",
