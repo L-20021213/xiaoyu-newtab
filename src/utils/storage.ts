@@ -56,7 +56,7 @@ const DEFAULT_SETTINGS: Settings = {
   language: "zh-CN", // 默认简体中文
   showPoetry: true, // 默认开启一言
   showFullNote: false, // 默认关闭完整显示便笺
-  searchEngine: "google",
+  searchEngine: "default", // 默认使用浏览器默认搜索引擎
   // Time settings
   showSeconds: false,
   use24Hour: true,
@@ -564,5 +564,83 @@ export async function saveNotes(notes: NoteItem[]): Promise<void> {
   } catch (error) {
     console.error("保存便笺数据失败:", error);
     setLocalStorage("notes", notes);
+  }
+}
+
+// ============ 同步数据迁移 ============
+
+/**
+ * 将本地数据迁移到 sync storage
+ * 在首次启用同步时调用
+ */
+export async function migrateLocalToSync(): Promise<void> {
+  const b = await getBrowser();
+  if (!b) {
+    console.warn("非扩展环境，无法迁移数据到 sync storage");
+    return;
+  }
+
+  console.log("开始迁移本地数据到 sync storage...");
+
+  try {
+    // 1. 获取本地存储的所有数据
+    const localData = await b.storage.local.get(["apps", "wallpaper", "notes"]);
+
+    // 2. 检查 sync storage 中是否已有数据
+    const syncData = await b.storage.sync.get(["apps", "wallpaper", "notes"]);
+
+    // 3. 只迁移 sync storage 中不存在的数据
+    const dataToSync: Record<string, unknown> = {};
+
+    // 迁移应用数据
+    if (!syncData.apps && localData.apps) {
+      dataToSync.apps = localData.apps;
+      console.log("迁移应用数据到 sync storage");
+    }
+
+    // 迁移壁纸设置（排除本地图片数据，因为太大）
+    if (!syncData.wallpaper && localData.wallpaper) {
+      const wallpaper = localData.wallpaper as WallpaperSettings;
+      // 不同步本地图片数据，因为可能超过 sync storage 限制
+      const wallpaperToSync = {
+        ...wallpaper,
+        localData: null,
+        localImages: [],
+      };
+      dataToSync.wallpaper = wallpaperToSync;
+      console.log("迁移壁纸设置到 sync storage（排除本地图片）");
+    }
+
+    // 迁移便笺数据
+    if (!syncData.notes && localData.notes) {
+      dataToSync.notes = localData.notes;
+      console.log("迁移便笺数据到 sync storage");
+    }
+
+    // 4. 将数据写入 sync storage
+    if (Object.keys(dataToSync).length > 0) {
+      await b.storage.sync.set(dataToSync);
+      console.log("数据迁移完成:", Object.keys(dataToSync));
+    } else {
+      console.log("sync storage 中已有数据，无需迁移");
+    }
+  } catch (error) {
+    console.error("数据迁移失败:", error);
+    throw error;
+  }
+}
+
+/**
+ * 检查 sync storage 中是否已有用户数据
+ */
+export async function hasSyncData(): Promise<boolean> {
+  const b = await getBrowser();
+  if (!b) return false;
+
+  try {
+    const syncData = await b.storage.sync.get(["apps", "wallpaper", "notes"]);
+    return !!(syncData.apps || syncData.wallpaper || syncData.notes);
+  } catch {
+    return false;
   }
 }

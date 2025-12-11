@@ -10,7 +10,27 @@ import { ref, computed } from "vue";
 import type { SearchEngine } from "@/types";
 import { useSettingsStore } from "./settings";
 
+// Chrome Search API 类型定义
+declare const chrome:
+  | {
+      search?: {
+        query: (queryInfo: { text: string; disposition?: "CURRENT_TAB" | "NEW_TAB" | "NEW_WINDOW" }) => Promise<void>;
+      };
+    }
+  | undefined;
+
+// 检测是否在 Chrome 扩展环境中且有 search API
+const hasChromSearchAPI = typeof chrome !== "undefined" && chrome?.search?.query;
+
 const SEARCH_ENGINES: SearchEngine[] = [
+  {
+    id: "default",
+    name: "默认搜索引擎",
+    icon: "ri:search-line",
+    url: "",
+    placeholder: "使用浏览器默认搜索引擎搜索",
+    isDefault: true,
+  },
   {
     id: "google",
     name: "Google",
@@ -77,10 +97,29 @@ export const useSearchStore = defineStore("search", () => {
     return engines.value.find(e => e.id === engineId) || engines.value[0];
   });
 
-  function search(query: string) {
+  async function search(query: string) {
     if (!query.trim()) return;
 
-    const url = currentEngine.value.url + encodeURIComponent(query);
+    const engine = currentEngine.value;
+
+    // 如果选择了默认搜索引擎或在 Chrome 扩展环境中使用 Chrome Search API
+    if (engine.isDefault && hasChromSearchAPI) {
+      try {
+        await chrome!.search!.query({
+          text: query,
+          disposition: settingsStore.settings.openInNewTab ? "NEW_TAB" : "CURRENT_TAB",
+        });
+        return;
+      } catch (e) {
+        console.error("Chrome Search API error:", e);
+        // 回退到传统方式
+      }
+    }
+
+    // 非默认搜索引擎或 H5 模式，使用传统 URL 跳转方式
+    // 如果是默认引擎但不在扩展环境，回退到 Google
+    const searchUrl = engine.isDefault ? "https://www.google.com/search?q=" : engine.url;
+    const url = searchUrl + encodeURIComponent(query);
 
     // 根据设置决定在新标签页还是当前页面打开
     if (settingsStore.settings.openInNewTab) {

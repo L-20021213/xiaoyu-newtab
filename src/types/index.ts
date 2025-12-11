@@ -18,6 +18,7 @@ export interface SearchEngine {
   url: string;
   placeholder: string;
   isCustom?: boolean; // 是否为自定义搜索引擎
+  isDefault?: boolean; // 是否为浏览器默认搜索引擎（使用 Chrome Search API）
 }
 
 export interface Settings {

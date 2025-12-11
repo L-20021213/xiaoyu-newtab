@@ -123,8 +123,12 @@ function closeCustomEngineDialog() {
           <Icon :icon="engine.icon" class="w-5 h-5 text-secondary" />
         </div>
         <div class="flex-1 text-left">
-          <p class="font-medium text-secondary">{{ engine.name }}</p>
-          <p class="text-xs truncate text-muted">{{ engine.url }}</p>
+          <p class="font-medium text-secondary">
+            {{ engine.isDefault ? t("searchSettings.browserDefault") : engine.name }}
+          </p>
+          <p class="text-xs truncate text-muted">
+            {{ engine.isDefault ? t("searchSettings.browserDefaultDesc") : engine.url }}
+          </p>
         </div>
         <div class="flex items-center gap-2">
           <!-- 编辑按钮（仅自定义引擎） -->

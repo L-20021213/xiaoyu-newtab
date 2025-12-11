@@ -11,7 +11,7 @@ export const useSettingsStore = defineStore("settings", () => {
     language: "zh-CN", // 默认简体中文
     showPoetry: true, // 默认开启一言
     showFullNote: false, // 默认关闭完整显示便笺
-    searchEngine: "google",
+    searchEngine: "default", // 默认使用浏览器默认搜索引擎
     // Time settings
     showSeconds: false,
     use24Hour: true,

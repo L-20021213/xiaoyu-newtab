@@ -151,6 +151,8 @@ export default {
   searchSettings: {
     title: "Search Engine Preferences",
     selectDefault: "Select default search engine",
+    browserDefault: "Browser Default",
+    browserDefaultDesc: "Use your browser's default search engine",
     addCustom: "Custom Search Engine",
     addCustomTitle: "Add Custom Search Engine",
     editCustomTitle: "Edit Custom Search Engine",
@@ -191,6 +193,9 @@ export default {
     enable: "Enable Account Sync",
     enableDesc: "When enabled, your settings, apps, and wallpaper will sync to your browser account",
     syncing: "Syncing data...",
+    checkingData: "Checking cloud data...",
+    migratingData: "Migrating local data to cloud...",
+    enablingSync: "Enabling sync...",
     chromeEdge: "Chrome/Edge:",
     chromeEdgeDesc: "Auto sync to your Google or Microsoft account",
     firefox: "Firefox:",

@@ -1,43 +1,8 @@
 import { ref } from "vue";
 import type { BookmarkNode } from "@/types";
 
-// 检测是否在浏览器扩展环境中
-declare const chrome:
-  | {
-      bookmarks?: unknown;
-    }
-  | undefined;
-
-const isExtension = typeof chrome !== "undefined" && chrome?.bookmarks;
-
-// 动态导入 webextension-polyfill
-type BrowserBookmarksAPI = {
-  bookmarks: {
-    getTree: () => Promise<BrowserBookmarkTreeNode[]>;
-  };
-};
-
-interface BrowserBookmarkTreeNode {
-  id: string;
-  title: string;
-  url?: string;
-  children?: BrowserBookmarkTreeNode[];
-}
-
-let browser: BrowserBookmarksAPI | null = null;
-
-async function getBrowser(): Promise<BrowserBookmarksAPI | null> {
-  if (!isExtension) return null;
-  if (!browser) {
-    try {
-      const browserModule = await import("webextension-polyfill");
-      browser = (browserModule.default || browserModule) as BrowserBookmarksAPI;
-    } catch {
-      return null;
-    }
-  }
-  return browser;
-}
+// 书签功能现在仅使用 localStorage 存储
+// Chrome 扩展权限已移除 bookmarks 权限以符合 Chrome Web Store 政策
 
 // localStorage 中存储的书签 key
 const BOOKMARKS_STORAGE_KEY = "h5_bookmarks";
@@ -68,43 +33,27 @@ export function useBookmarks() {
   const bookmarks = ref<BookmarkNode[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
-  // 是否在扩展环境中
-  const isInExtension = ref(isExtension);
+  // 书签功能现在统一使用 localStorage
+  const isInExtension = ref(false);
 
   async function fetchBookmarks() {
     loading.value = true;
     error.value = null;
 
     try {
-      const b = await getBrowser();
-      if (b) {
-        const tree = await b.bookmarks.getTree();
-        bookmarks.value = transformBookmarks(tree);
-      } else {
-        // 非扩展环境，从 localStorage 加载
-        bookmarks.value = getLocalBookmarks();
-        if (bookmarks.value.length === 0) {
-          // 提供一些默认书签供 H5 模式使用
-          bookmarks.value = getDefaultBookmarks();
-        }
+      // 从 localStorage 加载书签
+      bookmarks.value = getLocalBookmarks();
+      if (bookmarks.value.length === 0) {
+        // 提供一些默认书签
+        bookmarks.value = getDefaultBookmarks();
       }
     } catch (e) {
       console.error("Failed to fetch bookmarks:", e);
       error.value = "无法加载书签";
-      // 尝试从本地存储加载
-      bookmarks.value = getLocalBookmarks();
+      bookmarks.value = [];
     } finally {
       loading.value = false;
     }
-  }
-
-  function transformBookmarks(nodes: BrowserBookmarkTreeNode[]): BookmarkNode[] {
-    return nodes.map(node => ({
-      id: node.id,
-      title: node.title,
-      url: node.url,
-      children: node.children ? transformBookmarks(node.children) : undefined,
-    }));
   }
 
   function flattenBookmarks(nodes: BookmarkNode[]): BookmarkNode[] {
@@ -136,12 +85,8 @@ export function useBookmarks() {
     );
   }
 
-  // H5 模式下添加书签
+  // 添加书签
   function addBookmark(bookmark: Omit<BookmarkNode, "id">) {
-    if (isExtension) {
-      console.warn("在扩展环境中请使用浏览器的书签功能");
-      return;
-    }
     const newBookmark: BookmarkNode = {
       ...bookmark,
       id: Date.now().toString(),
@@ -150,12 +95,8 @@ export function useBookmarks() {
     saveLocalBookmarks(bookmarks.value);
   }
 
-  // H5 模式下删除书签
+  // 删除书签
   function removeBookmark(id: string) {
-    if (isExtension) {
-      console.warn("在扩展环境中请使用浏览器的书签功能");
-      return;
-    }
     const index = bookmarks.value.findIndex(b => b.id === id);
     if (index !== -1) {
       bookmarks.value.splice(index, 1);
@@ -163,7 +104,7 @@ export function useBookmarks() {
     }
   }
 
-  // 获取默认书签（H5 模式）
+  // 获取默认书签
   function getDefaultBookmarks(): BookmarkNode[] {
     return [
       { id: "1", title: "Google", url: "https://www.google.com" },

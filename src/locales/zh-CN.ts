@@ -151,6 +151,8 @@ export default {
   searchSettings: {
     title: "搜索引擎偏好",
     selectDefault: "选择默认搜索引擎",
+    browserDefault: "浏览器默认",
+    browserDefaultDesc: "使用浏览器设置的默认搜索引擎",
     addCustom: "自定义搜索引擎",
     addCustomTitle: "添加自定义搜索引擎",
     editCustomTitle: "编辑自定义搜索引擎",
@@ -191,6 +193,9 @@ export default {
     enable: "启用账号同步",
     enableDesc: "启用后，你的设置、应用和壁纸将自动同步到你的浏览器账号",
     syncing: "正在同步数据...",
+    checkingData: "正在检查云端数据...",
+    migratingData: "正在迁移本地数据到云端...",
+    enablingSync: "正在启用同步...",
     chromeEdge: "Chrome/Edge：",
     chromeEdgeDesc: "自动同步到你的 Google 或 Microsoft 账号",
     firefox: "Firefox：",

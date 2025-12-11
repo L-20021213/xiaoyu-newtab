@@ -11,9 +11,9 @@
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },
-  "{{chrome}}.permissions": ["storage", "bookmarks"],
+  "{{chrome}}.permissions": ["storage", "search"],
   "{{chrome}}.host_permissions": ["https://www.bing.com/*", "https://cn.bing.com/*"],
-  "{{firefox}}.permissions": ["storage", "bookmarks", "https://www.bing.com/*", "https://cn.bing.com/*"],
+  "{{firefox}}.permissions": ["storage", "https://www.bing.com/*", "https://cn.bing.com/*"],
   "{{chrome}}.background": {
     "service_worker": "src/background/index.js",
     "type": "module"

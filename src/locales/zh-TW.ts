@@ -151,6 +151,8 @@ export default {
   searchSettings: {
     title: "搜尋引擎偏好",
     selectDefault: "選擇預設搜尋引擎",
+    browserDefault: "瀏覽器預設",
+    browserDefaultDesc: "使用瀏覽器設定的預設搜尋引擎",
     addCustom: "自訂搜尋引擎",
     addCustomTitle: "新增自訂搜尋引擎",
     editCustomTitle: "編輯自訂搜尋引擎",
@@ -191,6 +193,9 @@ export default {
     enable: "啟用帳號同步",
     enableDesc: "啟用後，你的設定、應用和桌布將自動同步到你的瀏覽器帳號",
     syncing: "正在同步資料...",
+    checkingData: "正在檢查雲端資料...",
+    migratingData: "正在遷移本機資料到雲端...",
+    enablingSync: "正在啟用同步...",
     chromeEdge: "Chrome/Edge：",
     chromeEdgeDesc: "自動同步到你的 Google 或 Microsoft 帳號",
     firefox: "Firefox：",
