@@ -178,7 +178,7 @@ export default {
     localImage: "本地图片 / 视频",
     onlineImage: "在线图片链接",
     aiGenerate: "AI 作图",
-    aiGenerateHint: "AI 作图功能即将推出，敬请期待！",
+    aiGenerateHint: "使用 Nano Banana AI 生成壁纸",
     today: "今日",
     downloadOriginal: "下载原图",
     imageSource: "图片来源：必应",

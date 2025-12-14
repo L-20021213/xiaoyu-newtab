@@ -178,7 +178,7 @@ export default {
     localImage: "Local Image / Video",
     onlineImage: "Online Image URL",
     aiGenerate: "AI Generate",
-    aiGenerateHint: "AI generation feature coming soon!",
+    aiGenerateHint: "Generate wallpaper with Nano Banana AI",
     today: "Today",
     downloadOriginal: "Download Original",
     imageSource: "Source: Bing",

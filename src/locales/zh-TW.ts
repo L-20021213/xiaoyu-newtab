@@ -178,7 +178,7 @@ export default {
     localImage: "本機圖片 / 影片",
     onlineImage: "線上圖片連結",
     aiGenerate: "AI 作圖",
-    aiGenerateHint: "AI 作圖功能即將推出，敬請期待！",
+    aiGenerateHint: "使用 Nano Banana AI 生成桌布",
     today: "今日",
     downloadOriginal: "下載原圖",
     imageSource: "圖片來源：必應",

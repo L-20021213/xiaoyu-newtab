@@ -120,10 +120,9 @@ function handleCancelUrl() {
   urlInput.value = "";
 }
 
-// AI 作图 (暂未实现)
+// AI 作图 - 打开 Nano Banana
 function handleAiGenerate() {
-  // TODO: 实现 AI 作图功能
-  alert(t("wallpaperSettings.aiGenerateHint"));
+  window.open("https://nanobanana.im/zh", "_blank");
 }
 
 // 选择默认壁纸
