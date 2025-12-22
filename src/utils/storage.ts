@@ -90,11 +90,11 @@ const DEFAULT_SETTINGS: Settings = {
 };
 
 const DEFAULT_WALLPAPER: WallpaperSettings = {
-  type: "dynamic",
+  type: "default", // 默认使用本地静态壁纸
   url: null,
   localData: null,
   localImages: [],
-  defaultIndex: 0,
+  defaultIndex: 0, // 索引 0 是本地默认壁纸
   dynamicIndex: 0,
   blur: true,
   blurAmount: 30,

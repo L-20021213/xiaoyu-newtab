@@ -8,6 +8,7 @@ import {
   DYNAMIC_WALLPAPERS,
   DYNAMIC_WALLPAPER_THUMBNAILS,
   isVideoUrl,
+  preloadAndCacheWallpaper,
 } from "@/stores/wallpaper";
 import SettingsDialog from "./SettingsDialog.vue";
 
@@ -21,6 +22,32 @@ const wallpaperStore = useWallpaperStore();
 const fileInput = ref<HTMLInputElement | null>(null);
 const showUrlDialog = ref(false);
 const urlInput = ref("");
+
+// 缓存后的图片 URL 映射
+const cachedImageUrls = ref<Map<string, string>>(new Map());
+
+// 获取缓存后的图片 URL
+function getCachedUrl(originalUrl: string): string {
+  return cachedImageUrls.value.get(originalUrl) || originalUrl;
+}
+
+// 图片加载完成时缓存
+async function handleImageLoad(url: string) {
+  // 如果已经缓存过，跳过
+  if (cachedImageUrls.value.has(url)) return;
+
+  // 只缓存远程 URL
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    try {
+      const cachedUrl = await preloadAndCacheWallpaper(url);
+      if (cachedUrl !== url) {
+        cachedImageUrls.value.set(url, cachedUrl);
+      }
+    } catch (error) {
+      console.warn("Failed to cache wallpaper thumbnail:", error);
+    }
+  }
+}
 
 // 初始化时获取 Bing 壁纸
 onMounted(() => {
@@ -275,7 +302,12 @@ function downloadBingWallpaper() {
             :class="{ 'wallpaper-item-selected': isDynamicSelected(index) }"
             @click="selectDynamicWallpaper(index)"
           >
-            <img :src="DYNAMIC_WALLPAPER_THUMBNAILS[index]" :alt="`动态壁纸 ${index + 1}`" loading="lazy" />
+            <img
+              :src="getCachedUrl(DYNAMIC_WALLPAPER_THUMBNAILS[index])"
+              :alt="`动态壁纸 ${index + 1}`"
+              loading="lazy"
+              @load="handleImageLoad(DYNAMIC_WALLPAPER_THUMBNAILS[index])"
+            />
             <Transition name="check-fade">
               <div v-if="isDynamicSelected(index)" class="selected-badge">
                 <Icon icon="ri:check-line" class="check-icon" />
@@ -296,7 +328,7 @@ function downloadBingWallpaper() {
             :class="{ 'wallpaper-item-selected': isDefaultSelected(index) }"
             @click="selectDefaultWallpaper(index)"
           >
-            <img :src="url" :alt="`默认壁纸 ${index + 1}`" loading="lazy" />
+            <img :src="getCachedUrl(url)" :alt="`默认壁纸 ${index + 1}`" loading="lazy" @load="handleImageLoad(url)" />
             <Transition name="check-fade">
               <div v-if="isDefaultSelected(index)" class="selected-badge">
                 <Icon icon="ri:check-line" class="check-icon" />

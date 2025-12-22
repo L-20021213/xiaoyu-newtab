@@ -18,8 +18,11 @@ import AppGrid from "./components/AppGrid.vue";
 import SettingsMenu from "./components/SettingsMenu.vue";
 import PoetryDisplay from "./components/PoetryDisplay.vue";
 import GreetingToast from "./components/GreetingToast.vue";
-import NotesDialog from "./components/NotesDialog.vue";
-import PinnedNotes from "./components/PinnedNotes.vue";
+import { defineAsyncComponent } from "vue";
+
+// 懒加载大组件，减小初始包体积
+const NotesDialog = defineAsyncComponent(() => import("./components/NotesDialog.vue"));
+const PinnedNotes = defineAsyncComponent(() => import("./components/PinnedNotes.vue"));
 
 const settingsStore = useSettingsStore();
 const appsStore = useAppsStore();

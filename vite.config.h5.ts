@@ -7,16 +7,14 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import { resolve } from "path";
 import { viteStaticCopy } from "vite-plugin-static-copy";
+import { compression } from "vite-plugin-compression2";
 
 export default defineConfig({
   plugins: [
     vue(),
+    // 仅复制必要的资源（其他壁纸从 CDN 加载）
     viteStaticCopy({
       targets: [
-        {
-          src: "public/wallpaper/*",
-          dest: "wallpaper",
-        },
         {
           src: "public/icons/*",
           dest: "icons",
@@ -25,11 +23,26 @@ export default defineConfig({
           src: "icons/*",
           dest: "icons",
         },
+        {
+          src: "public/site.webmanifest",
+          dest: ".",
+        },
+        // 本地默认壁纸（首次加载使用，无需网络）
+        {
+          src: "public/wallpaper/static/3.jpg",
+          dest: "wallpaper",
+          rename: "default.jpg",
+        },
       ],
     }),
+    // Gzip + Brotli 压缩（服务器可直接返回预压缩文件）
+    compression({
+      exclude: [/\.(br)$/, /\.(gz)$/, /\.(png)$/, /\.(jpg)$/, /\.(webp)$/],
+      threshold: 1024,
+    }),
   ],
-  // 确保 public 目录正确设置（manifest.json 等会被复制到根目录）
-  publicDir: "public",
+  // 禁用默认 public 目录复制（壁纸资源已迁移到云端 CDN）
+  publicDir: false,
   resolve: {
     alias: {
       "@": resolve(__dirname, "src"),

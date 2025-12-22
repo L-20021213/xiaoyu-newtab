@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, defineAsyncComponent } from "vue";
 import { Icon } from "@iconify/vue";
 import { useI18n } from "vue-i18n";
-import GeneralSettings from "./settings/GeneralSettings.vue";
-import SearchSettings from "./settings/SearchSettings.vue";
-import WallpaperSettings from "./settings/WallpaperSettings.vue";
-import SyncSettings from "./settings/SyncSettings.vue";
-import AboutDialog from "./settings/AboutDialog.vue";
+
+// 懒加载设置组件，减小初始包体积
+const GeneralSettings = defineAsyncComponent(() => import("./settings/GeneralSettings.vue"));
+const SearchSettings = defineAsyncComponent(() => import("./settings/SearchSettings.vue"));
+const WallpaperSettings = defineAsyncComponent(() => import("./settings/WallpaperSettings.vue"));
+const SyncSettings = defineAsyncComponent(() => import("./settings/SyncSettings.vue"));
+const AboutDialog = defineAsyncComponent(() => import("./settings/AboutDialog.vue"));
 
 const { t } = useI18n();
 const showMenu = ref(false);

@@ -85,15 +85,18 @@ async function packageExtension() {
 
   console.log(`📦 版本: ${version}\n`);
 
+  // 排除的文件模式（压缩文件用于 H5 部署，扩展不需要）
+  const excludePatterns = ["node_modules", ".DS_Store", ".gz", ".br"];
+
   // 打包 Chrome 版本
   const chromeZip = join(distDir, `anheyu-newtab-chrome-v${version}.zip`);
   console.log("📦 正在打包 Chrome 版本...");
-  await createZip(chromeDir, chromeZip, ["node_modules", ".DS_Store"]);
+  await createZip(chromeDir, chromeZip, excludePatterns);
 
   // 打包 Edge 版本（与 Chrome 相同，但使用不同的文件名）
   const edgeZip = join(distDir, `anheyu-newtab-edge-v${version}.zip`);
   console.log("📦 正在打包 Edge 版本...");
-  await createZip(chromeDir, edgeZip, ["node_modules", ".DS_Store"]);
+  await createZip(chromeDir, edgeZip, excludePatterns);
 
   console.log("\n✨ 打包完成！");
   console.log(`\n📁 文件位置:`);

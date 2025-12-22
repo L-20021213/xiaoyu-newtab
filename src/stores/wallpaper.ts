@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import type { WallpaperSettings, BingWallpaperInfo } from "@/types";
 import {
   getWallpaper,
@@ -26,42 +26,107 @@ interface BingWallpaperResponse {
   error?: string;
 }
 
-// 默认静态壁纸列表 (本地图片)
+// 云端壁纸 CDN 基础路径
+const WALLPAPER_CDN_BASE = "https://pan.anzhiyu.site/d/anheyu/newtab/wallpaper";
+
+// 本地默认壁纸（首次加载使用，无需网络）
+export const LOCAL_DEFAULT_WALLPAPER = "/wallpaper/default.jpg";
+
+// 默认静态壁纸列表（第一张是本地默认，其他从 CDN 加载）
 export const DEFAULT_WALLPAPERS = [
-  "/wallpaper/static/1.jpg",
-  "/wallpaper/static/2.jpg",
-  "/wallpaper/static/3.jpg",
-  "/wallpaper/static/4.jpg",
-  "/wallpaper/static/5.jpg",
-  "/wallpaper/static/6.jpg",
-  "/wallpaper/static/7.jpg",
-  "/wallpaper/static/8.jpg",
-  "/wallpaper/static/9.jpg",
-  "/wallpaper/static/10.jpg",
-  "/wallpaper/static/11.jpg",
-  "/wallpaper/static/12.jpg",
-  "/wallpaper/static/13.jpg",
-  "/wallpaper/static/14.jpg",
-  "/wallpaper/static/15.jpg",
+  LOCAL_DEFAULT_WALLPAPER, // 索引 0: 本地默认壁纸 (3.jpg)
+  `${WALLPAPER_CDN_BASE}/static/1.jpg`,
+  `${WALLPAPER_CDN_BASE}/static/2.jpg`,
+  `${WALLPAPER_CDN_BASE}/static/4.jpg`,
+  `${WALLPAPER_CDN_BASE}/static/5.jpg`,
+  `${WALLPAPER_CDN_BASE}/static/6.jpg`,
+  `${WALLPAPER_CDN_BASE}/static/7.jpg`,
+  `${WALLPAPER_CDN_BASE}/static/8.jpg`,
+  `${WALLPAPER_CDN_BASE}/static/9.jpg`,
+  `${WALLPAPER_CDN_BASE}/static/10.jpg`,
+  `${WALLPAPER_CDN_BASE}/static/11.jpg`,
+  `${WALLPAPER_CDN_BASE}/static/12.jpg`,
+  `${WALLPAPER_CDN_BASE}/static/13.jpg`,
+  `${WALLPAPER_CDN_BASE}/static/14.jpg`,
+  `${WALLPAPER_CDN_BASE}/static/15.jpg`,
 ];
 
-// 动态壁纸列表 (本地视频)
+// 动态壁纸列表 (云端视频)
 export const DYNAMIC_WALLPAPERS = [
-  "/wallpaper/dynamic/kasumizawa-miyu-blue-archive.mp4",
-  "/wallpaper/dynamic/LiveWallpaperPC.com-Warma.mp4",
-  "/wallpaper/dynamic/xue-hu-sang-virtual-youtuber-desktop-wallpaperwaifu.com.mp4",
+  `${WALLPAPER_CDN_BASE}/dynamic/kasumizawa-miyu-blue-archive.mp4`,
+  `${WALLPAPER_CDN_BASE}/dynamic/LiveWallpaperPC.com-Warma.mp4`,
+  `${WALLPAPER_CDN_BASE}/dynamic/xue-hu-sang-virtual-youtuber-desktop-wallpaperwaifu.com.mp4`,
 ];
 
 // 动态壁纸缩略图 (同时作为后备静态图)
 export const DYNAMIC_WALLPAPER_THUMBNAILS = [
-  "/wallpaper/dynamic/kasumizawa-miyu-blue-archive_thumb.jpg",
-  "/wallpaper/dynamic/LiveWallpaperPC.com-Warma_thumb.jpg",
-  "/wallpaper/dynamic/xue-hu-sang-virtual-youtuber-desktop-wallpaperwaifu.com_thumb.jpg",
+  `${WALLPAPER_CDN_BASE}/dynamic/kasumizawa-miyu-blue-archive_thumb.jpg`,
+  `${WALLPAPER_CDN_BASE}/dynamic/LiveWallpaperPC.com-Warma_thumb.jpg`,
+  `${WALLPAPER_CDN_BASE}/dynamic/xue-hu-sang-virtual-youtuber-desktop-wallpaperwaifu.com_thumb.jpg`,
 ];
 
 // 获取动态壁纸的后备静态图
 export function getDynamicFallback(index: number): string {
   return DYNAMIC_WALLPAPER_THUMBNAILS[index] || DYNAMIC_WALLPAPER_THUMBNAILS[0];
+}
+
+// ==================== 壁纸缓存机制 ====================
+const WALLPAPER_CACHE_NAME = "anheyu-newtab-wallpaper-cache-v1";
+
+// 检查是否是远程 URL（需要缓存）
+function isRemoteUrl(url: string): boolean {
+  return url.startsWith("http://") || url.startsWith("https://");
+}
+
+// 缓存壁纸资源
+async function cacheWallpaper(url: string): Promise<string> {
+  if (!isRemoteUrl(url)) {
+    return url; // 本地资源直接返回
+  }
+
+  try {
+    const cache = await caches.open(WALLPAPER_CACHE_NAME);
+
+    // 检查缓存中是否已存在
+    const cachedResponse = await cache.match(url);
+    if (cachedResponse) {
+      console.log(`[Wallpaper Cache] Hit: ${url}`);
+      // 返回 blob URL 以便使用
+      const blob = await cachedResponse.blob();
+      return URL.createObjectURL(blob);
+    }
+
+    // 缓存中没有，从网络获取并缓存
+    console.log(`[Wallpaper Cache] Fetching: ${url}`);
+    const response = await fetch(url);
+    if (response.ok) {
+      // 克隆响应用于缓存（响应只能消费一次）
+      await cache.put(url, response.clone());
+      console.log(`[Wallpaper Cache] Cached: ${url}`);
+      const blob = await response.blob();
+      return URL.createObjectURL(blob);
+    }
+
+    return url; // 获取失败，返回原 URL
+  } catch (error) {
+    console.warn(`[Wallpaper Cache] Error caching ${url}:`, error);
+    return url; // 缓存失败，返回原 URL
+  }
+}
+
+// 预加载并缓存壁纸
+export async function preloadAndCacheWallpaper(url: string): Promise<string> {
+  return cacheWallpaper(url);
+}
+
+// 清理壁纸缓存
+export async function clearWallpaperCache(): Promise<void> {
+  try {
+    await caches.delete(WALLPAPER_CACHE_NAME);
+    console.log("[Wallpaper Cache] Cleared");
+  } catch (error) {
+    console.warn("[Wallpaper Cache] Error clearing cache:", error);
+  }
 }
 
 // 检测 URL 是否是视频格式
@@ -77,20 +142,24 @@ export function isVideoUrl(url: string | null): boolean {
   return videoExtensions.some(ext => lowerUrl.includes(ext));
 }
 
-const DEFAULT_WALLPAPER_URL = DEFAULT_WALLPAPERS[0];
+// 默认壁纸 URL（本地默认壁纸）
+const DEFAULT_WALLPAPER_URL = LOCAL_DEFAULT_WALLPAPER;
 
 export const useWallpaperStore = defineStore("wallpaper", () => {
   const settings = ref<WallpaperSettings>({
-    type: "dynamic",
+    type: "default", // 默认使用静态壁纸
     url: null,
     localData: null,
     localImages: [],
-    defaultIndex: 0,
+    defaultIndex: 0, // 默认索引 0 是本地壁纸
     dynamicIndex: 0,
     blur: true,
     blurAmount: 30,
     brightness: 100,
   });
+
+  // 缓存后的壁纸 URL（用于显示已缓存的远程壁纸）
+  const cachedWallpaperUrl = ref<string | null>(null);
 
   const loading = ref(false);
   // Bing 今日壁纸信息
@@ -120,7 +189,8 @@ export const useWallpaperStore = defineStore("wallpaper", () => {
     return false;
   });
 
-  const currentUrl = computed(() => {
+  // 获取原始壁纸 URL（未缓存）
+  const rawWallpaperUrl = computed(() => {
     const localImages = settings.value.localImages;
     switch (settings.value.type) {
       case "local":
@@ -140,6 +210,11 @@ export const useWallpaperStore = defineStore("wallpaper", () => {
         // 使用选中的默认壁纸索引
         return DEFAULT_WALLPAPERS[settings.value.defaultIndex] || DEFAULT_WALLPAPER_URL;
     }
+  });
+
+  // 当前壁纸 URL（优先使用缓存）
+  const currentUrl = computed(() => {
+    return cachedWallpaperUrl.value || rawWallpaperUrl.value;
   });
 
   const wallpaperStyle = computed(() => {
@@ -170,21 +245,8 @@ export const useWallpaperStore = defineStore("wallpaper", () => {
       stored.dynamicIndex = 0;
     }
 
-    // 如果存储中没有明确的类型设置（首次使用），默认使用动态壁纸的第一张
-    // 检查是否是从 DEFAULT_WALLPAPER 继承的（即没有保存过自定义设置）
-    if (stored.type === "default") {
-      // 检查是否有其他自定义设置（如果有，说明用户之前选择过默认壁纸，保留）
-      const hasCustomSettings =
-        stored.url || stored.localData || (Array.isArray(stored.localImages) && stored.localImages.length > 0);
-      if (!hasCustomSettings) {
-        // 首次使用或没有自定义设置，设置为动态壁纸的第一张
-        stored.type = "dynamic";
-        stored.dynamicIndex = 0;
-        // 保存新的默认设置
-        await saveWallpaper({ type: "dynamic", dynamicIndex: 0 });
-      }
-    }
-
+    // 首次使用时，默认使用本地静态壁纸（索引 0）
+    // 不再默认使用动态壁纸，因为动态壁纸需要从 CDN 加载
     settings.value = stored;
 
     // 如果存储的类型是 bing，先尝试从缓存加载，然后后台更新
@@ -201,6 +263,39 @@ export const useWallpaperStore = defineStore("wallpaper", () => {
     // 如果是本地多图模式，随机选择一张
     if (stored.type === "local" && Array.isArray(stored.localImages) && stored.localImages.length > 0) {
       currentLocalIndex.value = Math.floor(Math.random() * stored.localImages.length);
+    }
+
+    // 预加载并缓存当前壁纸
+    await loadAndCacheCurrentWallpaper();
+
+    // 监听壁纸 URL 变化，自动缓存
+    watch(rawWallpaperUrl, async newUrl => {
+      if (newUrl) {
+        await loadAndCacheCurrentWallpaper();
+      }
+    });
+  }
+
+  // 加载并缓存当前壁纸
+  async function loadAndCacheCurrentWallpaper() {
+    const url = rawWallpaperUrl.value;
+    if (!url) return;
+
+    // 如果是远程 URL，尝试缓存
+    if (isRemoteUrl(url)) {
+      loading.value = true;
+      try {
+        const cachedUrl = await cacheWallpaper(url);
+        cachedWallpaperUrl.value = cachedUrl;
+      } catch (error) {
+        console.warn("Failed to cache wallpaper:", error);
+        cachedWallpaperUrl.value = null;
+      } finally {
+        loading.value = false;
+      }
+    } else {
+      // 本地资源，直接使用
+      cachedWallpaperUrl.value = null;
     }
   }
 

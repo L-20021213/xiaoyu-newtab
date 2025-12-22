@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { Icon } from "@iconify/vue";
-import { marked } from "marked";
 import { useI18n } from "vue-i18n";
 import { useNotesStore } from "@/stores/notes";
 import { useSettingsStore } from "@/stores/settings";
-
 const { t } = useI18n();
 
 const emit = defineEmits<{
@@ -27,17 +25,43 @@ const isFullscreen = ref(false);
 const saveStatus = ref<"saved" | "saving" | "idle">("idle");
 // 保存防抖定时器
 let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+// marked 模块（延迟加载）
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let markedModule: any = null;
+
+// 动态加载 marked 库（仅在需要预览时加载）
+async function parseMarkdown(content: string): Promise<string> {
+  if (!markedModule) {
+    markedModule = await import("marked");
+  }
+  return markedModule.marked(content) as string;
+}
 
 // 当前选中便笺的字数
 const wordCount = computed(() => {
   return editorContent.value.length;
 });
 
-// Markdown 渲染结果
-const renderedMarkdown = computed(() => {
-  if (!editorContent.value) return "";
-  return marked(editorContent.value);
-});
+// 渲染后的 Markdown HTML（异步加载 marked 库）
+const markdownHtml = ref("");
+
+// 监听编辑器内容和预览模式变化，异步渲染 Markdown
+watch(
+  [() => editorContent.value, () => showPreview.value],
+  async ([content, preview]) => {
+    if (!content || !preview) {
+      markdownHtml.value = "";
+      return;
+    }
+    try {
+      markdownHtml.value = await parseMarkdown(content);
+    } catch (error) {
+      console.error("Failed to render markdown:", error);
+      markdownHtml.value = content;
+    }
+  },
+  { immediate: true }
+);
 
 // 监听选中便笺变化，更新编辑器内容
 watch(
@@ -300,7 +324,7 @@ function handleBackdropClick(e: MouseEvent) {
               v-if="showPreview && notesStore.selectedNoteId"
               class="flex-1 min-w-0 overflow-y-auto preview-container"
             >
-              <div class="p-4 prose-sm prose markdown-preview" v-html="renderedMarkdown" />
+              <div class="p-4 prose-sm prose markdown-preview" v-html="markdownHtml" />
             </div>
           </div>
         </div>
