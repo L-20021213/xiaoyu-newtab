@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { Icon } from "@iconify/vue";
 import { useI18n } from "vue-i18n";
 import {
@@ -9,6 +9,7 @@ import {
   DYNAMIC_WALLPAPER_THUMBNAILS,
   isVideoUrl,
   preloadAndCacheWallpaper,
+  getCachedWallpaperUrl,
 } from "@/stores/wallpaper";
 import SettingsDialog from "./SettingsDialog.vue";
 
@@ -25,6 +26,10 @@ const urlInput = ref("");
 
 // 缓存后的图片 URL 映射
 const cachedImageUrls = ref<Map<string, string>>(new Map());
+// 缓存加载状态
+const cacheLoading = ref(true);
+// 创建的 blob URL 列表，用于清理
+const createdBlobUrls = ref<string[]>([]);
 
 // 获取缓存后的图片 URL
 function getCachedUrl(originalUrl: string): string {
@@ -42,6 +47,10 @@ async function handleImageLoad(url: string) {
       const cachedUrl = await preloadAndCacheWallpaper(url);
       if (cachedUrl !== url) {
         cachedImageUrls.value.set(url, cachedUrl);
+        // 记录创建的 blob URL
+        if (cachedUrl.startsWith("blob:")) {
+          createdBlobUrls.value.push(cachedUrl);
+        }
       }
     } catch (error) {
       console.warn("Failed to cache wallpaper thumbnail:", error);
@@ -49,10 +58,55 @@ async function handleImageLoad(url: string) {
   }
 }
 
-// 初始化时获取 Bing 壁纸
-onMounted(() => {
+// 初始化时预先检查所有壁纸的缓存状态
+async function initializeCachedUrls() {
+  cacheLoading.value = true;
+
+  // 收集所有需要检查缓存的 URL
+  const urlsToCheck: string[] = [
+    ...DEFAULT_WALLPAPERS.filter(url => url.startsWith("http")),
+    ...DYNAMIC_WALLPAPER_THUMBNAILS,
+  ];
+
+  // 并行检查所有 URL 的缓存状态
+  const results = await Promise.all(
+    urlsToCheck.map(async url => {
+      try {
+        const cachedUrl = await getCachedWallpaperUrl(url);
+        return { url, cachedUrl };
+      } catch {
+        return { url, cachedUrl: null };
+      }
+    })
+  );
+
+  // 将缓存的 URL 存入映射
+  for (const { url, cachedUrl } of results) {
+    if (cachedUrl && cachedUrl !== url) {
+      cachedImageUrls.value.set(url, cachedUrl);
+      if (cachedUrl.startsWith("blob:")) {
+        createdBlobUrls.value.push(cachedUrl);
+      }
+    }
+  }
+
+  cacheLoading.value = false;
+}
+
+// 初始化时获取 Bing 壁纸并检查缓存
+onMounted(async () => {
+  // 先检查缓存
+  await initializeCachedUrls();
+
   if (!wallpaperStore.bingWallpaper) {
     wallpaperStore.fetchBingWallpaper();
+  }
+});
+
+// 组件卸载时清理 blob URL
+onUnmounted(() => {
+  for (const blobUrl of createdBlobUrls.value) {
+    URL.revokeObjectURL(blobUrl);
   }
 });
 
@@ -297,17 +351,19 @@ function downloadBingWallpaper() {
         <div class="wallpaper-grid wallpaper-grid-3">
           <button
             v-for="(_, index) in DYNAMIC_WALLPAPERS"
-            :key="index"
+            :key="`dynamic-${index}-${cacheLoading}`"
             class="wallpaper-item"
             :class="{ 'wallpaper-item-selected': isDynamicSelected(index) }"
             @click="selectDynamicWallpaper(index)"
           >
             <img
+              v-if="!cacheLoading"
               :src="getCachedUrl(DYNAMIC_WALLPAPER_THUMBNAILS[index])"
               :alt="`动态壁纸 ${index + 1}`"
               loading="lazy"
               @load="handleImageLoad(DYNAMIC_WALLPAPER_THUMBNAILS[index])"
             />
+            <div v-else class="thumbnail-loading" />
             <Transition name="check-fade">
               <div v-if="isDynamicSelected(index)" class="selected-badge">
                 <Icon icon="ri:check-line" class="check-icon" />
@@ -323,12 +379,19 @@ function downloadBingWallpaper() {
         <div class="wallpaper-grid">
           <button
             v-for="(url, index) in DEFAULT_WALLPAPERS"
-            :key="index"
+            :key="`default-${index}-${cacheLoading}`"
             class="wallpaper-item"
             :class="{ 'wallpaper-item-selected': isDefaultSelected(index) }"
             @click="selectDefaultWallpaper(index)"
           >
-            <img :src="getCachedUrl(url)" :alt="`默认壁纸 ${index + 1}`" loading="lazy" @load="handleImageLoad(url)" />
+            <img
+              v-if="!cacheLoading"
+              :src="getCachedUrl(url)"
+              :alt="`默认壁纸 ${index + 1}`"
+              loading="lazy"
+              @load="handleImageLoad(url)"
+            />
+            <div v-else class="thumbnail-loading" />
             <Transition name="check-fade">
               <div v-if="isDefaultSelected(index)" class="selected-badge">
                 <Icon icon="ri:check-line" class="check-icon" />
@@ -713,6 +776,28 @@ function downloadBingWallpaper() {
   margin: 0;
   padding: 0;
   transition: transform 0.3s ease;
+}
+
+.thumbnail-loading {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgb(var(--color-border) / 0.3) 25%,
+    rgb(var(--color-border) / 0.5) 50%,
+    rgb(var(--color-border) / 0.3) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .wallpaper-item:hover img {

@@ -92,6 +92,14 @@ watch(wallpaperUrl, () => {
   videoError.value = false;
 });
 
+// 显示壁纸加载指示器（仅在壁纸切换时显示，不在初始加载时显示）
+const showWallpaperLoading = computed(() => {
+  // 初始加载时不显示 loading（有 placeholder）
+  if (isInitialLoad.value) return false;
+  // 壁纸正在加载且还未准备好
+  return (wallpaperStore.loading || !wallpaperReady.value) && !videoError.value;
+});
+
 // 监听视图切换，延迟更新模糊状态
 watch(
   [showAppGrid, isSearchFocused],
@@ -143,7 +151,7 @@ onMounted(async () => {
   }
 
   appsStore.init();
-  wallpaperStore.init();
+  await wallpaperStore.init(); // 等待壁纸缓存检查完成
   notesStore.init();
 
   // 标记初始加载完成，允许后续的过渡动画
@@ -264,6 +272,14 @@ function handleAppGridClick(e: MouseEvent) {
         @load="onWallpaperLoad"
       />
     </div>
+
+    <!-- 壁纸加载 Loading 指示器 -->
+    <Transition name="loading-fade">
+      <div v-if="showWallpaperLoading" class="wallpaper-loading">
+        <div class="loading-spinner" />
+        <span class="loading-text">{{ wallpaperStore.isVideoWallpaper ? "动态壁纸加载中..." : "壁纸加载中..." }}</span>
+      </div>
+    </Transition>
 
     <!-- Gradient overlay -->
     <div
@@ -389,6 +405,60 @@ function handleAppGridClick(e: MouseEvent) {
   width: auto;
   height: auto;
   object-fit: cover;
+}
+
+/* 壁纸加载指示器 */
+.wallpaper-loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 32px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0.9;
+}
+
+/* Loading 淡入淡出动画 */
+.loading-fade-enter-active,
+.loading-fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.loading-fade-enter-from,
+.loading-fade-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.9);
 }
 
 /* 渐变遮罩层 */

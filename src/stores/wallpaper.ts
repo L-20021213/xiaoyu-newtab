@@ -129,6 +129,28 @@ export async function clearWallpaperCache(): Promise<void> {
   }
 }
 
+// 仅检查缓存是否存在，不会触发网络请求
+export async function getCachedWallpaperUrl(url: string): Promise<string | null> {
+  if (!isRemoteUrl(url)) {
+    return null; // 本地资源不需要缓存
+  }
+
+  try {
+    const cache = await caches.open(WALLPAPER_CACHE_NAME);
+    const cachedResponse = await cache.match(url);
+
+    if (cachedResponse) {
+      const blob = await cachedResponse.blob();
+      return URL.createObjectURL(blob);
+    }
+
+    return null; // 缓存中不存在
+  } catch (error) {
+    console.warn(`[Wallpaper Cache] Error checking cache for ${url}:`, error);
+    return null;
+  }
+}
+
 // 检测 URL 是否是视频格式
 export function isVideoUrl(url: string | null): boolean {
   if (!url) return false;
