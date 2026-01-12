@@ -15,6 +15,7 @@ const use24Hour = computed(() => settingsStore.settings.use24Hour);
 const showSeconds = computed(() => settingsStore.settings.showSeconds);
 const blinkSeparator = computed(() => settingsStore.settings.blinkSeparator);
 const timeFontWeight = computed(() => settingsStore.settings.timeFontWeight);
+const timeFontSize = computed(() => settingsStore.settings.timeFontSize);
 
 // 字体粗细映射
 const fontWeightMap = {
@@ -60,7 +61,7 @@ onUnmounted(() => {
 
 <template>
   <div class="time-container" data-time-display>
-    <div class="time-display" :style="{ fontWeight: fontWeightMap[timeFontWeight] }">
+    <div class="time-display" :style="{ fontWeight: fontWeightMap[timeFontWeight], fontSize: `${timeFontSize}px` }">
       <span class="time-digit">{{ hours }}</span>
       <span class="time-colon" :class="{ 'colon-hidden': !showColon }">:</span>
       <span class="time-digit">{{ minutes }}</span>
@@ -100,26 +101,13 @@ onUnmounted(() => {
   color: #fff;
   cursor: pointer;
   font-family: -apple-system, BlinkMacSystemFont;
-  font-size: 32px;
   font-weight: 400;
   letter-spacing: -0.02em;
   text-align: center;
   text-overflow: ellipsis;
   text-shadow: 0 0 20px rgba(0, 0, 0, 0.35);
   white-space: nowrap;
-  transition: color 0.25s, font-weight 0.25s, text-shadow 0.25s;
-}
-
-@media (min-width: 480px) {
-  .time-display {
-    font-size: 38px;
-  }
-}
-
-@media (min-width: 640px) {
-  .time-display {
-    font-size: 42px;
-  }
+  transition: color 0.25s, font-weight 0.25s, text-shadow 0.25s, font-size 0.25s;
 }
 
 .time-display:hover {
@@ -141,7 +129,7 @@ onUnmounted(() => {
   line-height: 1;
   margin: 0;
   opacity: 0.9;
-  transform: translateY(-4px);
+  transform: translateY(-0.1em);
   transition: opacity 0.1s ease;
 }
 

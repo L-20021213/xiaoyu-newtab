@@ -17,6 +17,7 @@ export const useSettingsStore = defineStore("settings", () => {
     use24Hour: true,
     blinkSeparator: true,
     timeFontWeight: "normal",
+    timeFontSize: 42, // 默认字体大小
     blurIntensity: 20,
     dockSize: "medium",
     // Initialization settings

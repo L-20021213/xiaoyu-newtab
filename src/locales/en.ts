@@ -86,6 +86,7 @@ export default {
     showSeconds: "Show seconds",
     blinkSeparator: "Blink time separator",
     timeFont: "Time font",
+    timeFontSize: "Time font size",
     fontNormal: "Normal",
     fontMedium: "Medium",
     fontSemibold: "Semibold",

@@ -33,6 +33,7 @@ export interface Settings {
   use24Hour: boolean;
   blinkSeparator: boolean;
   timeFontWeight: "normal" | "medium" | "semibold" | "bold";
+  timeFontSize: number; // 时间字体大小 (24-120)
   blurIntensity: number;
   dockSize: "small" | "medium" | "large";
   // Initialization settings

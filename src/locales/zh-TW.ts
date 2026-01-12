@@ -86,6 +86,7 @@ export default {
     showSeconds: "顯示秒數",
     blinkSeparator: "閃爍時間分隔符",
     timeFont: "時間字型",
+    timeFontSize: "時間字型大小",
     fontNormal: "常規",
     fontMedium: "中等",
     fontSemibold: "半粗",

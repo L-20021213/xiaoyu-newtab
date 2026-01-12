@@ -573,6 +573,26 @@ async function handleResetShortcuts() {
               </div>
             </div>
 
+            <!-- Time Font Size Slider (only in Time section) -->
+            <div
+              v-if="section.name === t('generalSettings.time')"
+              class="flex flex-col gap-2 px-3 py-2.5 rounded-lg setting-item-bg"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-secondary">{{ t("generalSettings.timeFontSize") }}</span>
+                <span class="text-sm text-muted">{{ settingsStore.settings.timeFontSize }}px</span>
+              </div>
+              <input
+                type="range"
+                min="24"
+                max="120"
+                step="2"
+                :value="settingsStore.settings.timeFontSize"
+                @input="(e) => settingsStore.updateSettings({ timeFontSize: Number((e.target as HTMLInputElement).value) })"
+                class="time-font-size-slider"
+              />
+            </div>
+
             <!-- Username Input (only in Initialization section) -->
             <div
               v-if="section.name === t('generalSettings.initialization')"
@@ -985,5 +1005,54 @@ async function handleResetShortcuts() {
 .fade-enter-from .confirm-dialog,
 .fade-leave-to .confirm-dialog {
   transform: scale(0.95);
+}
+
+/* 时间字体大小滑块 */
+.time-font-size-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: rgb(var(--color-border) / 0.3);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.time-font-size-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: rgb(var(--color-accent));
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.time-font-size-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgb(var(--color-accent) / 0.5);
+}
+
+.time-font-size-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: rgb(var(--color-accent));
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.time-font-size-slider::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgb(var(--color-accent) / 0.5);
+}
+
+.time-font-size-slider::-moz-range-track {
+  background: rgb(var(--color-border) / 0.3);
+  border-radius: 2px;
+  height: 4px;
 }
 </style>
