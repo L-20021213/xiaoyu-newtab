@@ -44,6 +44,11 @@ export default defineConfig(({ mode }) => {
             dest: "wallpaper",
             rename: "default.jpg",
           },
+          // 复制多语言文件
+          {
+            src: "_locales",
+            dest: ".",
+          },
         ],
       }),
       // Gzip + Brotli 压缩（对 H5 部署有效，扩展打包时 zip 会自动压缩）
